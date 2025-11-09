@@ -14,6 +14,7 @@ struct GameState
     Sound jumpSound;
     Sound attackSound;
     Sound aquireSound;
+    Texture bg;
 
     Camera2D camera;
     KeyboardKey key = KEY_F1;
@@ -37,7 +38,7 @@ public:
     virtual void initialise() = 0;
     virtual void update(float deltaTime) = 0;
     virtual void render() = 0;
-    virtual void renderUI() = 0; // render elements that are fixed to screen
+    virtual void renderUI() = 0;
     virtual void shutdown() = 0;
     virtual void input(KeyboardKey key); 
     int getLives() { return lives; }

@@ -263,7 +263,6 @@ void LevelC::update(float deltaTime)
             mGameState.nextSceneID = 5;
          }
 
-   // printf("%f, %f\n", mGameState.xochitl->getPosition().x, mGameState.xochitl->getPosition().y);
 
 
    panCamera(&mGameState.camera, &currentPlayerPosition);
@@ -271,7 +270,7 @@ void LevelC::update(float deltaTime)
 
 void LevelC::render()
 {
-   ClearBackground(ColorFromHex(mBGColourHexCode));
+   // ClearBackground(ColorFromHex(mBGColourHexCode));
 
    mGameState.xochitl->render();
    for (int i = 0; i < mGameState.collidableEntities.size(); ++i) {
@@ -283,6 +282,7 @@ void LevelC::render()
 
 void LevelC::renderUI()
 {
+   Scene::renderUI();
    for (int i = 0; i < 3; ++i) {
       mGameState.hearts[i]->render();
    }
@@ -290,6 +290,5 @@ void LevelC::renderUI()
 
 void LevelC::shutdown()
 {
-   printf("LevelC::shutdown()");
    Scene::shutdown();
 }

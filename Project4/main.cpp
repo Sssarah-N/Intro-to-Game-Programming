@@ -65,10 +65,6 @@ void initialiseScene() {
     gLevels.push_back(gWonScene);
 
     switchToScene(gLevels[3], false);
-
-    printf("initialized\n");
-
-
 }
 
 void initialise()
@@ -139,6 +135,7 @@ void update()
 void render()
 {
     BeginDrawing();
+    gCurrentScene->renderUI(); 
     
     if (gCurrentScene->getState().xochitl != nullptr) {
         BeginMode2D(gCurrentScene->getState().camera);
@@ -150,7 +147,7 @@ void render()
         EndMode2D();
     }
     
-    gCurrentScene->renderUI(); 
+    
     
     EndDrawing();
 }
@@ -178,12 +175,10 @@ int main(void)
             int id = gCurrentScene->getState().nextSceneID;
             if (gLevels[id] == gCurrentScene) PlaySound(levelCompletedSound);
             if (id == 3) {
-                printf("trying to switch to 3\n");
                 Scene::lives = 3; 
                 gCurrentScene = nullptr;
                 for (size_t i = 0; i < gLevels.size(); ++i) delete gLevels[i];
                 gLevels.clear();
-                printf("about to enter\n");
                 initialiseScene();
                 continue;
             }

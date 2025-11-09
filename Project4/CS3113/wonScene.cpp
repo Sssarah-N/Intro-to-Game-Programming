@@ -24,12 +24,12 @@ void WonScene::render()
 }
 
 void WonScene::renderUI() {
-   const char* text = "\t\t\t\t\tYOU WON\n\nPress R to Restart";
-   DrawText(text, 250, mOrigin.y-1*40, 40, WHITE);
+   Scene::renderUI();
+   const char* text = "\t\t\t\tYOU WON\n\n  Press R to Restart";
+   DrawText(text, 100, mOrigin.y-80, 70, ColorFromHex("#002e53ff"));
 }
 
 void WonScene::shutdown()
 {
-   printf("won::shutdown()");
    Scene::shutdown();
 }

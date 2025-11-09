@@ -292,10 +292,8 @@ void Entity::AIActivate(Entity *target)
 void Entity::update(float deltaTime, Entity *player, Map *map, 
     std::vector<Entity*> collidableEntities)
 {
-    // std::cout << "colliding bottom " << mIsCollidingBottom << std::endl;
     if (mEntityStatus == INACTIVE) return;
     
-    // if ( mIsCollidingBottom && mVelocity.y != 0) printf("bugbug\n");
     if (mEntityType == NPC) AIActivate(player);
 
     resetColliderFlags();
@@ -411,7 +409,7 @@ void Entity::render()
         mAngle, WHITE
     );
 
-    displayCollider();
+    // displayCollider();
 }
 
 void Entity::displayCollider() 

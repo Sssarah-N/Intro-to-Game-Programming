@@ -15,7 +15,6 @@ void LoseScene::initialise()
 void LoseScene::update(float deltaTime)
 {
    if (IsKeyPressed(KEY_R)) mGameState.nextSceneID = 3;
-   // printf("switching to 3\n");
 }
 
 void LoseScene::render()
@@ -25,12 +24,12 @@ void LoseScene::render()
 }
 
 void LoseScene::renderUI() {
-   const char* text = "\t\t\t\t\tYOU LOST\n\nPress R to Restart";
-   DrawText(text, 250, mOrigin.y-1*40, 40, WHITE);
+   Scene::renderUI();
+   const char* text = "\t\t\t\tYOU LOST\n\n  Press R to Restart";
+   DrawText(text, 100, mOrigin.y-80, 70, ColorFromHex("#002e53ff"));
 }
 
 void LoseScene::shutdown()
 {
-   printf("lost::shutdown()");
    Scene::shutdown();
 }

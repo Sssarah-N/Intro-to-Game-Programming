@@ -16,32 +16,42 @@ void Scene::initialise() {
    SetSoundVolume( mGameState.jumpSound, 0.5f);
    mGameState.attackSound = LoadSound("assets/attack.wav");
    mGameState.aquireSound = LoadSound("assets/acquire.wav");
+   mGameState.bg = LoadTexture("assets/bg4.jpg");
 }
 
 void Scene::input(KeyboardKey key) {
     mGameState.key = key;
 } 
 
+void Scene::renderUI() {
+    Rectangle source {
+        0, 0, mGameState.bg.width, mGameState.bg.height
+     };
+     Rectangle destination {
+        mOrigin.x, mOrigin.y, 1000, 600
+     };
+  
+     DrawTexturePro(mGameState.bg, source, destination, mOrigin, 0.0f, ColorFromHex("#ffffffff"));
+}
+
 Scene::~Scene() { }
 
 void Scene::shutdown() {
-    printf("Scene::shutdown()\n");
     delete mGameState.xochitl;
     mGameState.xochitl = nullptr;
     delete mGameState.map;
     mGameState.map = nullptr;
-    printf("here1\n");
     for (size_t i = 0; i < mGameState.collidableEntities.size(); ++i) {
         delete mGameState.collidableEntities[i];
     }
-    printf("here2\n");
     mGameState.collidableEntities.clear();  
 
     for (size_t i = 0; i < mGameState.hearts.size(); ++i) {
         delete mGameState.hearts[i];
     }
     mGameState.hearts.clear();
-    printf("here3\n");
+
+    UnloadTexture(mGameState.bg);
     
     if (mGameState.jumpSound.frameCount > 0) {
         StopSound(mGameState.jumpSound);
@@ -56,6 +66,5 @@ void Scene::shutdown() {
         UnloadSound(mGameState.aquireSound);
     }
     
-    printf("finished Scene::shutdown()\n");
 }
 

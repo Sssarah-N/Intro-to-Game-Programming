@@ -220,7 +220,8 @@ void LevelA::update(float deltaTime)
 
 void LevelA::render()
 {
-   ClearBackground(ColorFromHex(mBGColourHexCode));
+   // ClearBackground(ColorFromHex(mBGColourHexCode));
+   
 
    mGameState.xochitl->render();
    for (int i = 0; i < mGameState.collidableEntities.size(); ++i) {
@@ -232,6 +233,7 @@ void LevelA::render()
 
 void LevelA::renderUI()
 {
+   Scene::renderUI();
    for (int i = 0; i < 3; ++i) {
       mGameState.hearts[i]->render();
    }
@@ -239,6 +241,5 @@ void LevelA::renderUI()
 
 void LevelA::shutdown()
 {
-   printf("LevelA::shutdown()");
    Scene::shutdown();
 }
