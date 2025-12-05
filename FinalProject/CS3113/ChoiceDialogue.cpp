@@ -15,7 +15,7 @@ void ChoiceDialogue::render() {
     DrawTexturePro(box, source, dest, {0.0f, 0.0f}, 0.0f, WHITE);
     
     // choice boxes
-    float choiceStartY = GetScreenHeight() * 0.70f;
+    float choiceStartY = GetScreenHeight() * 0.65f;
     float choiceHeight = 70.0f;
     float choiceSpacing = 25.0f;
     float choiceWidth = 700.0f;
@@ -66,8 +66,7 @@ void ChoiceDialogue::handleInput() {
     if (selectedChoice != -1) return; 
     
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        Vector2 mousePos = GetMousePosition();
-        
+        Vector2 mousePos = GetMousePosition(); 
         for (size_t i = 0; i < choiceBoxes.size(); i++) {
             if (CheckCollisionPointRec(mousePos, choiceBoxes[i])) {
                 selectedChoice = (int)i;

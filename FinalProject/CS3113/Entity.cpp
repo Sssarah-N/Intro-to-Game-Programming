@@ -231,7 +231,8 @@ void Entity::animate(float deltaTime)
 }
 
 void Entity::AIWander() { 
-    // Random wandering behavior
+
+    // random wandering
     mWanderTimer += GetFrameTime();
 
     switch (mAIState)
@@ -271,7 +272,7 @@ void Entity::AIWander() {
                         break;
                 }
             } else {
-                // Stand still 
+                // 50% chance of standing still 
                 mMovement.x = 0.0f;
                 mMovement.y = 0.0f;
                 
@@ -303,21 +304,37 @@ void Entity::AIFlyer() {
 
 void Entity::AIFollow(Entity *target)
 {
+    if (!target) return;
+    
     switch (mAIState)
     {
-    case IDLE:
-        if (Vector2Distance(mPosition, target->getPosition()) < 250.0f) 
-            mAIState = WALKING;
-        break;
-
     case WALKING:
-        // Depending on where the player is in respect to their x-position
-        // Change direction of the enemy
-        if (mPosition.x > target->getPosition().x) moveLeft();
-        else                                       moveRight();
-        if (mPosition.y > target->getPosition().y) moveDown();
-        else                                       moveUp();
+    {
+        Vector2 targetPos = target->getPosition();
+        float dx = targetPos.x - mPosition.x;
+        float dy = targetPos.y - mPosition.y;
+        
+        float minDist = 40.0f;
+        if (abs(dx) < minDist && abs(dy) < minDist) {
+            mAIState = IDLE;
+            break;
+        }
+        if (abs(dx) > minDist) {
+            if (dx > 0) moveRight();
+            else        moveLeft();
+        }
+        if (abs(dy) > minDist) {
+            if (dy > 0) moveDown();
+            else        moveUp();
+        }
+        break;
+    }
     
+    case IDLE:
+    {
+        float dist = Vector2Distance(mPosition, target->getPosition());
+        if (dist > 20.0f) mAIState = WALKING;
+    }
     default:
         break;
     }
@@ -349,9 +366,15 @@ void Entity::update(float deltaTime, Entity *player, std::vector<Map*> maps,
 {
     if (mEntityStatus == INACTIVE) return;
     
-    if (mEntityType == NPC) AIActivate(player);
+    if (mEntityType == NPC) {
+        if (!mTarget) mTarget = player;
+        AIActivate(mTarget);
+    } 
 
     resetColliderFlags();
+
+    if (GetLength(mMovement) > 1.0f) 
+        normaliseMovement();
 
     mVelocity.x = mMovement.x * mSpeed;
     

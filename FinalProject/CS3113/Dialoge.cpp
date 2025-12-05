@@ -76,7 +76,6 @@ void Dialoge::nextLine() {
     
     if (currline < lines.size()) {
         PlaySound(typingSound);
-        printf("playing\n");
     }
 }
 

@@ -21,6 +21,7 @@ private:
     Vector2 mAcceleration;
     bool mCheckCollision = true;
     EntityState mEntityState = WALK;
+    Entity* mTarget = nullptr;
 
     Vector2 mScale;
     Vector2 mColliderDimensions;
@@ -146,6 +147,7 @@ public:
     EntityState getEntityState()           const { return mEntityState;           }
     std::string getName()                  const { return mName;                  }
     bool        isInteractable()           const { return mInteractable;          }
+    Entity*     getTarget()                const { return mTarget;                }
 
     
     bool isCollidingTop()    const { return mIsCollidingTop;    }
@@ -211,6 +213,9 @@ public:
         { mAttackAnimations = animations;          } 
     void setInteractable(bool status) {
         mInteractable = status;
+    }
+    void setTarget(Entity* target) {
+        mTarget = target;
     }
 };
 

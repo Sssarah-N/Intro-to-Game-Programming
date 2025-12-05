@@ -216,7 +216,7 @@ void LevelA::initialise()
       "assets/bed.png",
       BLOCK  
    };
-   // bed->setInteractable(false);
+   bed->setInteractable(false);
    bed->setName("bed");
    
    mGameState.collidableEntities.insert({"bed", bed});
@@ -235,10 +235,9 @@ void LevelA::initialise()
    TVstates.tvText = "1. Observe if people have a natural facial expression \nwhen they talk or smile\n\n"
                      "2. Make sure to lock every door and window at \nnight time\n\n"
                      "3. Government inspectors wearing BLUE uniform are here \nto help you, ask for help if you suspect there is a mimic\n\n"
-                     "4. Humans blink irregularly\n\n"
-                     "5. If you suspect someone is a mimic, question them \nabout a private memory\n\n"
-                     "6. The eyes of a mimic is more red compared to human\n\n"
-                     "7. If you want to test if someone has been converted, \ncut on a subject's arm. A mimic's wound will close rapidly";
+                     "4. If you suspect someone is a mimic, question them \nabout a private memory\n\n"
+                     "5. The eyes of a mimic is more red compared to human\n\n"
+                     "6. If you want to test if someone has been converted, \ncut on a subject's arm. A mimic's wound will close rapidly";
 
    /*
       ----------- DIALOGES -----------
@@ -436,12 +435,11 @@ void LevelA::update(float deltaTime)
          }
       }
       
-      if (IsKeyPressed(KEY_SPACE) && !TVstates.tvTextFullyRevealed) {
+      if (IsKeyPressed(KEY_E) && !TVstates.tvTextFullyRevealed) {
             TVstates.tvRevealedChars = TVstates.tvText.length();
             TVstates.tvTextFullyRevealed = true;
       }
-
-      if (IsKeyPressed(KEY_E) && TVstates.tvTextFullyRevealed) {
+      else if (IsKeyPressed(KEY_E) && TVstates.tvTextFullyRevealed) {
          TVstates.displayingTV = false;
          StopSound(mGameState.sounds["TVSound"]);
          mGameState.collidableEntities["TV"]->setInteractable(false);
@@ -550,8 +548,9 @@ void LevelA::update(float deltaTime)
    }   
 
    if (mGameState.effectStarted && mGameState.effect->isEffectComplete()) {
-      printf("switched scene");
+      // printf("switched scene");
       mGameState.nextSceneID = 1;
+      // mGameState.shaderEffect = 3;
    }
 
 

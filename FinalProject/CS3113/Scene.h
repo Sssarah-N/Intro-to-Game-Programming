@@ -2,6 +2,7 @@
 #include "Dialoge.h"
 #include "ChoiceDialogue.h"
 #include "Effects.h"
+#include "ShaderProgram.h"
 #include <map>
 
 #ifndef SCENE_H
@@ -23,6 +24,9 @@ struct GameState
 
     Effects* effect;
     bool effectStarted = false;
+    
+    ShaderProgram shader;
+    int shaderEffect = 0;
 
     Camera2D camera;
     KeyboardKey key = KEY_F1;
@@ -64,7 +68,7 @@ public:
     virtual void input(KeyboardKey key); 
     int getLives() { return lives; }
     
-    GameState   getState()           const { return mGameState; }
+    const GameState& getState()      const { return mGameState; }
     Vector2     getOrigin()          const { return mOrigin;    }
     const char* getBGColourHexCode() const { return mBGColourHexCode; }
 };

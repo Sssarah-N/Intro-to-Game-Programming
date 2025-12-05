@@ -8,7 +8,7 @@ public:
                         END_GAME_THRESHOLD      = 800.0f;
 
     StartScreen();
-    StartScreen(Vector2 origin, const char *bgHexCode);
+    StartScreen(Vector2 origin, const char *bgHexCode, Music bgm);
     ~StartScreen();
     
     void initialise() override;
@@ -16,5 +16,4 @@ public:
     void render() override;
     void renderUI() override;
     void shutdown() override;
-    void nextScreen();
 };

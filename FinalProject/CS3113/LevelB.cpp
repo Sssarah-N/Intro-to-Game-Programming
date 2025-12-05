@@ -2,6 +2,7 @@
 #include "Dialoge.h"
 #include <iostream>
 #include <algorithm>
+#include <string>
 
 // LevelB::LevelB()                                      : Scene { {0.0f}, nullptr,   } {}
 LevelB::LevelB(Vector2 origin, const char *bgHexCode, Music bgMusic) : Scene { origin, bgHexCode, bgMusic } {}
@@ -36,6 +37,15 @@ void LevelB::initialise()
       mOrigin                      // in-game origin
    );
    mGameState.maps.push_back(map);
+
+   // sound
+
+   mGameState.sounds["knock"] = LoadSound("assets/knockSound.wav");
+   SetSoundVolume(mGameState.sounds["knock"], 2.0f);
+   mGameState.sounds["stab"] = LoadSound("assets/stabSound.wav");
+   mGameState.sounds["scream"] = LoadSound("assets/scream.wav");
+   mGameState.sounds["heartbeat"] = LoadSound("assets/heartbeat.wav");
+   SetSoundVolume(mGameState.sounds["heartbeat"], 4.0f);
 
    /*
       ----------- PROTAGONIST -----------
@@ -111,7 +121,7 @@ void LevelB::initialise()
    };
 
    Entity* dad = new Entity(
-      getGridPos(10, 7), // position
+      getGridPos(5, 7), // position
       // {mGameState.maps[0]->getLeftBoundary()+TILE_DIMENSION, mGameState.maps[0]->getBottomBoundary()-TILE_DIMENSION}, // position
       {100.0f, 100.0f},             // scale
       "assets/dad.png",                   // texture file address
@@ -135,6 +145,42 @@ void LevelB::initialise()
 
 
    /*
+      ----------- INSPECTOR -----------
+   */
+  std::map<Direction, std::vector<int>> inspectorWalkAtlas = {
+    {DOWN,  {  0, 1, 2}},
+    {LEFT,  {  3, 4, 5}},
+    {RIGHT, {  6, 7, 8}},
+    {UP,    {  9, 10, 11}},
+    };
+ 
+    Entity* inspector = new Entity(
+       getGridPos(12, 6), // position
+       // {mGameState.maps[0]->getLeftBoundary()+TILE_DIMENSION, mGameState.maps[0]->getBottomBoundary()-TILE_DIMENSION}, // position
+       {100.0f, 100.0f},             // scale
+       "assets/inspector.png",                   // texture file address
+       ATLAS,                                    // single image or atlas?
+       { 4, 3 },                                 // atlas dimensions
+       inspectorWalkAtlas,                    // actual atlas
+       NPC                                    // entity type
+    );
+ 
+    inspector->setSpeed(20);
+    inspector->setName("inspector");
+    inspector->setDirection(DOWN);
+    inspector->setColliderDimensions({
+       inspector->getScale().x / 3.0f,
+       inspector->getScale().y / 3.0f
+    });
+    inspector->setAIType(FOLLOWER);
+    inspector->setAIState(WALKING);
+    inspector->render(); 
+    inspector->setTarget(mGameState.collidableEntities["mom"]);
+    inspector->deactivate();
+    mGameState.collidableEntities.insert({"inspector", inspector});
+
+
+   /*
       ----------- INTERACTABLES -----------
    */
 
@@ -151,7 +197,7 @@ void LevelB::initialise()
       maindoor->getScale().y/4.0f
    });
    maindoor->setName("maindoor");
-   maindoor->setInteractable(true);
+   maindoor->setInteractable(false);
    mGameState.collidableEntities.insert({"maindoor", maindoor});
 
 
@@ -168,7 +214,7 @@ void LevelB::initialise()
       door->getScale().y / 2.5f
    });
    door->setName("door");
-   // door->setInteractable(false);
+   door->setInteractable(false);
    mGameState.collidableEntities.insert({"door", door});
 
 
@@ -216,7 +262,7 @@ void LevelB::initialise()
       "assets/bed.png",
       BLOCK  
    };
-   // bed->setInteractable(false);
+   bed->setInteractable(false);
    bed->setName("bed");
    
    mGameState.collidableEntities.insert({"bed", bed});
@@ -230,15 +276,18 @@ void LevelB::initialise()
    mGameState.UIs["board"] = LoadTexture("assets/boardrules.png");
    mGameState.UIs["mom"] = LoadTexture("assets/momProtrait.png");
    mGameState.UIs["dad"] = LoadTexture("assets/dadPortrait.png");
+   mGameState.UIs["blueshirt"] = LoadTexture("assets/blueshirt.png");
+   mGameState.UIs["blood1"] = LoadTexture("assets/blood1.png");
+   mGameState.UIs["blood2"] = LoadTexture("assets/blood2.png");
+
    
    // TV text
    TVstates.tvText = "1. Observe if people have a natural facial expression \nwhen they talk or smile\n\n"
                      "2. Make sure to lock every door and window at \nnight time\n\n"
                      "3. Government inspectors wearing BLUE uniform are here \nto help you, ask for help if you suspect there is a mimic\n\n"
-                     "4. Humans blink irregularly\n\n"
-                     "5. If you suspect someone is a mimic, question them \nabout a private memory\n\n"
-                     "6. The eyes of a mimic is more red compared to human\n\n"
-                     "7. If you want to test if someone has been converted, \ncut on a subject's arm. A mimic's wound will close rapidly";
+                     "4. If you suspect someone is a mimic, question them \nabout a private memory\n\n"
+                     "5. The eyes of a mimic is more red compared to human\n\n"
+                     "6. If you want to test if someone has been converted, \ncut on a subject's arm. A mimic's wound will close rapidly";
 
    /*
       ----------- DIALOGES -----------
@@ -266,76 +315,127 @@ void LevelB::initialise()
    dialoge = new Dialoge(lines, "News");
    mGameState.dialogues["News"] = dialoge;
 
-   lines = {
-      "...",
-      "Is this actually happening?",
-      "Anyways, I should jot the guidelines down on the board."
-   };
-
-   dialoge = new Dialoge(lines, "character");
-   mGameState.dialogues["afterNews"] = dialoge;
-
 
    // mom1
+
    lines = {
-      "Good morning sweet heart, slept well?",
-      "Did you see the news this morning? I know it is concerning.",
-      "At least we are safe in our home."
-   };
+        "Mom looks the same as yesterday",
+        "I should question her with a private memory like stated in the guidelines"
+    };
+
+    dialoge = new Dialoge(lines, "character");
+    mGameState.dialogues["mom_morning1"] = dialoge;
+    
+    lines = {
+        "The beach?",
+        " Oh... it was that beautiful shell necklace, right? You wore it all the time."
+    };
 
    dialoge = new Dialoge(lines, "Mom");
-   mGameState.dialogues["mom_morning1"] = dialoge;
-
-   lines = {
-      "Did mom look like this before?",
-      "I must be overthinking"
-   };
-
-   dialoge = new Dialoge(lines, "character");
-   mGameState.dialogues["mom_morning2"] = dialoge;
+   mGameState.dialogues["mom_morning2"] = dialoge;   
 
 
    // dad1
-   lines = {
-      "You heard about the news in the morning?",
-      "Don't worry, we are all save at home"
-   };
+    lines = {
+        "Dad looks the same as yesterday",
+        "I should question him with a private memory like stated in the guidelines"
+    };
 
-   dialoge = new Dialoge(lines, "Dad");
-   mGameState.dialogues["dad_morning1"] = dialoge;
+    dialoge = new Dialoge(lines, "character");
+    mGameState.dialogues["dad_morning1"] = dialoge;
 
    lines = {
-      "I'm ok, just a little tired"
+      " it was the glass fishing float, right?",
+      "We even argued with another tourist over it."
    };
 
    dialoge = new Dialoge(lines, "Dad");
    mGameState.dialogues["dad_morning2"] = dialoge;
 
+   // after mom and dad
+   lines = {
+        "They have different answers..",
+        "I don't actually remember the answer. Who was correct?",
+        "Did they simply forgot or has one of them got replaced?",
+        "I shouldn't think about it more."
+    };
+
+    dialoge = new Dialoge(lines, "character");
+    mGameState.dialogues["momdad"] = dialoge;
    
 
-   // maindoor
+   // inspector
    lines = {
-      "There are a few people wandering on the street.",
-      "But are they actually humans...",
-      "Probably not a good idea to go outside."
+        "It's a blue shirt guy. The news guidelines said they are government inspectors.",
+        "But not all guidelines are real.",
+        "I should talk to them to confirm it."
+    };
+
+    dialoge = new Dialoge(lines, "character");
+    mGameState.dialogues["peephole"] = dialoge;
+
+
+   lines = {
+      "Hello, we are the government inspectors.",
+      "We are here to help you.",
+      "Did you observe any suspicious entities that are behaving like a Mimic?",
+      "If yes then we could help you to test them."
    };
 
-   dialoge = new Dialoge(lines, "character");
-   mGameState.dialogues["maindoor"] = dialoge;
+   dialoge = new Dialoge(lines, "Inspector");
+   mGameState.dialogues["inspector1"] = dialoge;
 
-
-   // bed
    lines = {
-      "Today has been a little weird",
-      "I've already locked my door, and I will go to bed for now.",
-      "Hopefully everything will be fine tomorrow."
-   };
+        "Ok, I'm happy to hear that.",
+        "If you think something if wrong with your family, please contact us immediately.",
+        "Have a good night."
+    };
 
-   dialoge = new Dialoge(lines, "character");
-   mGameState.dialogues["bed"] = dialoge;
+    dialoge = new Dialoge(lines, "Inspector");
+    mGameState.dialogues["inspectorLeft"] = dialoge;
+
+    lines = {
+        "Of course, I will examine your parents.",
+        "......",
+        "Your parents have been corrupted.",
+        "They are not humans anymore, but Mimics that are trying to replace you as well.",
+        "I will help you take care of them, please wait here for a moment.",
+     };
+  
+     dialoge = new Dialoge(lines, "Inspector");
+     mGameState.dialogues["inspectorCame"] = dialoge;
+
+     lines = {
+        "No...",
+        "I shouldn't have opened the door... I shouldn't",
+        "But he was the government inspector, I thought I could trust him",
+        "Mom.. Dad... I'm sorry",
+        "I trusted the wrong one",
+        "I MUST RUN NOW",
+        "ESCAPE FROM THE FRONT DOOR"
+     };
+  
+     dialoge = new Dialoge(lines, "character");
+     mGameState.dialogues["blood"] = dialoge;
 
 
+     lines = {
+        "I should have let him in..",
+        "But he might be a mimic as well.",
+        "I cannot trust anyone",
+        "I must figure everything out by myself.",
+        "I should go to sleep now"
+     };
+  
+     dialoge = new Dialoge(lines, "character");
+     mGameState.dialogues["rejected"] = dialoge;
 
+   
+   /*
+      ----------- SHADER -----------
+   */
+   mGameState.shader.load("shaders/vertex.glsl", "shaders/fragment.glsl");
+   mGameState.shaderEffect = 0;
    /*
       ----------- CAMERA -----------
    */
@@ -345,15 +445,18 @@ void LevelB::initialise()
    mGameState.camera.rotation = 0.0f;                            // no rotation
    mGameState.camera.zoom = 1.0f;                                // default zoom
 
+
+   /*
+      ----------- EFFECT -----------
+   */
    mGameState.effect = new Effects(mOrigin, (float) GetScreenWidth() * 2.0f, (float) GetScreenHeight() * 2.0f);
    mGameState.effect->setEffectSpeed(0.15f);
    mGameState.effect->start(FADEIN);
 }
 
 Vector2 LevelB::getGridPos(int row, int col) {
-   return {mGameState.maps[0]->getLeftBoundary() + row*TILE_DIMENSION, 
-      mGameState.maps[0]->getTopBoundary() +col*TILE_DIMENSION};
-      
+   return {mGameState.maps[0]->getLeftBoundary() + (float) (row*TILE_DIMENSION), 
+      mGameState.maps[0]->getTopBoundary() + (float)(col*TILE_DIMENSION)};
 }
 
 void LevelB::update(float deltaTime)
@@ -370,17 +473,67 @@ void LevelB::update(float deltaTime)
          }
      }
      if (mGameState.activeDialogue->isDialogueComplete() )  {
-      if (mGameState.activeDialogue == mGameState.dialogues["mom_morning1"]) {
-         mGameState.activeChoice = new ChoiceDialogue("mom_morning", {"Observe"});
+      Dialoge* completedDialogue = mGameState.activeDialogue; 
+      bool setNewDialogue = false;
+      
+      if (mGameState.activeDialogue == mGameState.dialogues["mom_morning1"] && !mGameState.activeChoice) {
+         mGameState.activeChoice = new ChoiceDialogue("mom_morning", {"Souvenir found during beach trip?"});
       }
-      else if (mGameState.activeDialogue == mGameState.dialogues["dad_morning1"]) {
-         mGameState.activeChoice = new ChoiceDialogue("dad_morning", {"Observe"});
+      else if (mGameState.activeDialogue == mGameState.dialogues["dad_morning1"] && !mGameState.activeChoice) {
+         mGameState.activeChoice = new ChoiceDialogue("dad_morning", {"Souvenir found during beach trip?"});
+      }
+      else if (mGameState.activeDialogue == mGameState.dialogues["mom_morning2"]) {
+        mGameState.collidableEntities["mom"]->setAIState(WALKING);
       }
       else if (mGameState.activeDialogue == mGameState.dialogues["dad_morning2"]) {
-         mGameState.collidableEntities["dad"]->setAIState(WALKING);
+        mGameState.collidableEntities["dad"]->setAIState(WALKING);
       }
-      
-      mGameState.activeDialogue = nullptr;
+      else if (mGameState.activeDialogue == mGameState.dialogues["momdad"]) {
+        // else if (mGameState.activeDialogue == mGameState.dialogues["opening"]) {
+        knock = true;
+        mGameState.collidableEntities["maindoor"]->setInteractable(true);
+      }
+      else if (mGameState.activeDialogue == mGameState.dialogues["inspector1"]) {
+        mGameState.activeChoice = new ChoiceDialogue("inspector1", {"Could you please test my parents?", "No, everyone is fine here."});
+      }
+      else if (mGameState.activeDialogue == mGameState.dialogues["inspectorLeft"]) {
+        mGameState.collidableEntities["maindoor"]->setTexture("assets/door_closed.png");
+        mGameState.collidableEntities["maindoor"]->setInteractable(false);
+        mGameState.activeDialogue = mGameState.dialogues["rejected"];
+        setNewDialogue = true;
+      }
+      else if (mGameState.activeDialogue == mGameState.dialogues["inspectorCame"]) {
+        mGameState.collidableEntities["inspector"]->activate();
+        mGameState.collidableEntities["inspector"]->setAIState(WALKING);
+      }
+      else if (mGameState.activeDialogue == mGameState.dialogues["blood"]) {
+        displayingBlood = false;
+        mGameState.collidableEntities["mom"]->deactivate();
+        mGameState.collidableEntities["dad"]->deactivate();
+         
+        Vector2 inspectorPos = mGameState.collidableEntities["inspector"]->getPosition();
+        Vector2 playerPos = mGameState.xochitl->getPosition();
+        float distance = Vector2Distance(inspectorPos, playerPos);
+         waitingForInspector = true;
+         inspectorWaitTimer = 0.0f;
+      }
+      else if (mGameState.activeDialogue == mGameState.dialogues["rejected"]) {
+        mGameState.collidableEntities["bed"]->setInteractable(true);
+      }
+      if (!setNewDialogue) {
+          mGameState.activeDialogue = nullptr;
+      }
+     }
+   }
+
+   // Handle inspector wait timer
+   if (waitingForInspector) {
+     inspectorWaitTimer += deltaTime;
+     if (inspectorWaitTimer >= 3.0f) {
+       // Wait complete, start chasing
+       mGameState.collidableEntities["inspector"]->setTarget(mGameState.xochitl);
+       mGameState.collidableEntities["inspector"]->setSpeed(50);
+       waitingForInspector = false;
      }
    }
 
@@ -393,6 +546,7 @@ void LevelB::update(float deltaTime)
 
    mGameState.collidableEntities["mom"]->update(deltaTime, mGameState.xochitl, mGameState.maps, mGameState.collidableEntities);
    mGameState.collidableEntities["dad"]->update(deltaTime, mGameState.xochitl, mGameState.maps, mGameState.collidableEntities);
+   mGameState.collidableEntities["inspector"]->update(deltaTime, mGameState.xochitl, mGameState.maps, mGameState.collidableEntities);
 
    Vector2 charPos = mGameState.xochitl->getPosition();
    Vector2 doorpos = mGameState.collidableEntities["door"]->getPosition();
@@ -417,32 +571,14 @@ void LevelB::update(float deltaTime)
    }
    
    // Update TV typing effect
-   if (TVstates.displayingTV && TVstates.startDisplay) {
-      if (!TVstates.tvTextFullyRevealed) {
-         TVstates.tvTypingTimer += deltaTime;
-         float charsToReveal = TVstates.tvTypingTimer * TVstates.tvCharsPerSecond;
-         TVstates.tvRevealedChars = (size_t)charsToReveal;
-         
-         if (TVstates.tvRevealedChars >= TVstates.tvText.length()) {
-            TVstates.tvRevealedChars = TVstates.tvText.length();
-            TVstates.tvTextFullyRevealed = true;
-         }
-      }
-      
-      if (IsKeyPressed(KEY_SPACE) && !TVstates.tvTextFullyRevealed) {
-            TVstates.tvRevealedChars = TVstates.tvText.length();
-            TVstates.tvTextFullyRevealed = true;
-      }
-
-      if (IsKeyPressed(KEY_E) && TVstates.tvTextFullyRevealed) {
-         TVstates.displayingTV = false;
-         StopSound(mGameState.sounds["TVSound"]);
-         mGameState.collidableEntities["TV"]->setInteractable(false);
-         mGameState.collidableEntities["board"]->setInteractable(true);
-         mGameState.collidableEntities["door"]->setInteractable(true);
-         mGameState.activeDialogue = mGameState.dialogues["character"];
-      }
-   }
+    if (TVstates.displayingTV && IsKeyPressed(KEY_E) && mGameState.dialogues["News"]->isDialogueComplete()) {
+        TVstates.displayingTV = false;
+        StopSound(mGameState.sounds["TVSound"]);
+        mGameState.collidableEntities["TV"]->setInteractable(false);
+        mGameState.collidableEntities["door"]->setInteractable(true);
+        mGameState.collidableEntities["board"]->setInteractable(true);
+    }
+   
 
    if (isAround(mGameState.collidableEntities["board"]) && mGameState.collidableEntities["board"]->isInteractable()
          && IsKeyPressed(KEY_E) && !displayingBoard ) {
@@ -459,6 +595,7 @@ void LevelB::update(float deltaTime)
          && IsKeyPressed(KEY_E) && !mGameState.dialogues["mom_morning1"]->isDialogueComplete()) {
       mGameState.activeDialogue = mGameState.dialogues["mom_morning1"];
       mGameState.collidableEntities["mom"]->setAIState(IDLE);
+      mGameState.collidableEntities["mom"]->setInteractable(false);
    }
    
 
@@ -474,29 +611,25 @@ void LevelB::update(float deltaTime)
          && IsKeyPressed(KEY_E) && !mGameState.dialogues["dad_morning1"]->isDialogueComplete()) {
       mGameState.activeDialogue = mGameState.dialogues["dad_morning1"];
       mGameState.collidableEntities["dad"]->setAIState(IDLE);
+      mGameState.collidableEntities["dad"]->setInteractable(false);
    }
    
-
-   if (displayingDad && IsKeyPressed(KEY_E)) {
-      displayingDad= false;
-      // mGameState.activeDialogue = mGameState.dialogues["mom_morning2"];
-      mGameState.activeChoice = new ChoiceDialogue("dad_morning2", {"Are you ok? Your eyes are kind of red"});
-   }
-
    if (isAround(mGameState.collidableEntities["maindoor"]) && mGameState.collidableEntities["maindoor"]->isInteractable()
          && IsKeyPressed(KEY_E)) {
-      mGameState.activeDialogue = mGameState.dialogues["maindoor"];
-      PlaySound(mGameState.sounds["doorSound"]);
+      knock = false;
+      if(IsSoundPlaying(mGameState.sounds["knock"])) {
+        StopSound(mGameState.sounds["knock"]);
+      }
+      displayingBlue = true;
+      mGameState.activeDialogue = mGameState.dialogues["peephole"];
    }
 
-   if (mGameState.dialogues["mom_morning2"]->isDialogueComplete() && mGameState.dialogues["dad_morning2"]->isDialogueComplete()
-               && mGameState.dialogues["maindoor"]->isDialogueComplete()) {
-         mGameState.collidableEntities["bed"]->setInteractable(true);
-      }
-
-   if (isAround(mGameState.collidableEntities["bed"]) && mGameState.collidableEntities["bed"]->isInteractable()
-         && IsKeyPressed(KEY_E)) {
-      mGameState.activeDialogue = mGameState.dialogues["bed"];
+   if ( mGameState.dialogues["peephole"]->isDialogueComplete()
+             && IsKeyPressed(KEY_E) && !mGameState.dialogues["inspector1"]->isDialogueComplete()) {
+        displayingBlue = false;
+        mGameState.activeDialogue = mGameState.dialogues["inspector1"];
+        mGameState.collidableEntities["maindoor"]->setTexture("assets/door_opened.png");
+        mGameState.collidableEntities["maindoor"]->setInteractable(false);
    }
 
    
@@ -507,78 +640,135 @@ void LevelB::update(float deltaTime)
       if (mGameState.activeChoice->hasSelectedChoice()) {
          int choice = mGameState.activeChoice->getSelectedChoice();
          if (mGameState.activeChoice->getName() == "mom_morning") {
+            printf("mom_morning");
             if (choice == 0) {
-               displayingMom = true;
+               mGameState.activeDialogue = mGameState.dialogues["mom_morning2"];
             } 
             delete mGameState.activeChoice;
             mGameState.activeChoice = nullptr;
          }
          else if (mGameState.activeChoice->getName() == "dad_morning") {
             if (choice == 0) {
-               displayingDad = true;
+                mGameState.activeDialogue = mGameState.dialogues["dad_morning2"];
             } 
             delete mGameState.activeChoice;
             mGameState.activeChoice = nullptr;
          }
-         else if (mGameState.activeChoice->getName() == "dad_morning2") {
+         else if (mGameState.activeChoice->getName() == "inspector1") {
             if (choice == 0) {
-               mGameState.activeDialogue = mGameState.dialogues["dad_morning2"];
+                mGameState.activeDialogue = mGameState.dialogues["inspectorCame"];
+            } 
+            else if (choice == 1) {
+                mGameState.activeDialogue = mGameState.dialogues["inspectorLeft"];
             } 
             delete mGameState.activeChoice;
             mGameState.activeChoice = nullptr;
-            mGameState.activeDialogue = mGameState.dialogues["dad_morning2"];
          }
       }
    }
+
+   if (mGameState.dialogues["mom_morning2"]->isDialogueComplete() 
+         && mGameState.dialogues["dad_morning2"]->isDialogueComplete()
+         && !mGameState.dialogues["momdad"]->isDialogueComplete()
+         && !mGameState.activeDialogue) {
+        mGameState.activeDialogue = mGameState.dialogues["momdad"];
+   }
+
+   if (knock && !IsSoundPlaying(mGameState.sounds["knock"])) {
+        PlaySound(mGameState.sounds["knock"]);
+   }
+
 
    mGameState.effect->update(deltaTime, nullptr);
 
    Vector2 currentPlayerPosition = { mGameState.xochitl->getPosition().x, mGameState.xochitl->getPosition().y };
 
-   // finished day, move to next day
-   if (mGameState.dialogues["bed"]->isDialogueComplete() && !mGameState.effectStarted)  {
-      printf("bed dialogue ended\n");
-      mGameState.effect->start(FADEOUT);
-      mGameState.effectStarted = true;
-   }   
-
    if (mGameState.effectStarted && mGameState.effect->isEffectComplete()) {
       printf("switched scene");
-      mGameState.nextSceneID = 1;
+      mGameState.nextSceneID = 2;
    }
 
+   Vector2 mompos = mGameState.collidableEntities["mom"]->getPosition();
+   Vector2 inspectorpos = mGameState.collidableEntities["inspector"]->getPosition();
+   if ((abs(mompos.x - inspectorpos.x) < 50.0f) && (abs(mompos.y - inspectorpos.y) < 50.0f) 
+            && !displayingBlood && !mGameState.dialogues["blood"]->isDialogueComplete()) {
+        displayingBlood = true;
+        startTime = 0.0f;
+        PlaySound(mGameState.sounds["scream"]);
+        mGameState.shaderEffect = 2;
+   }
+   
+   if (displayingBlood) {
+        startTime += deltaTime;
+   }
 
+   if (playHeartbeat && !IsSoundPlaying(mGameState.sounds["heartbeat"])) 
+        PlaySound(mGameState.sounds["heartbeat"]);
+
+     if (isAround(mGameState.collidableEntities["maindoor"]) && mGameState.dialogues["blood"]->isDialogueComplete() && !canRun) {
+         canRun = true;
+         spacePressCount = 0;
+     }
+
+     if (isAround(mGameState.collidableEntities["inspector"]) && mGameState.dialogues["blood"]->isDialogueComplete()
+         && !waitingForInspector) {
+        displayingBlood = true;
+    }
+
+   
+   if (canRun && !hasRun) {
+        if (IsKeyPressed(KEY_SPACE)) {
+            spacePressCount++;
+        }
+        if (spacePressCount >= 30) {
+            hasRun = true;
+            canRun = false;
+            mGameState.nextSceneID = 4;
+        }
+   }
+
+   if (isAround(mGameState.collidableEntities["bed"]) && IsKeyPressed(KEY_E) 
+        && mGameState.collidableEntities["bed"]->isInteractable() && !mGameState.effectStarted) {
+        mGameState.effect->start(FADEOUT);
+        mGameState.effectStarted = true;
+    }
    panCamera(&mGameState.camera, &currentPlayerPosition);
 }
 
 void LevelB::render()
 {
+   mGameState.shader.begin();
+   mGameState.shader.setInt("effect", mGameState.shaderEffect);
    // ClearBackground(ColorFromHex(mBGColourHexCode));
    for (size_t i = 0; i < mGameState.maps.size(); ++i) mGameState.maps[i]->render();
    
    for (const auto& pair : mGameState.collidableEntities)
    {
-      pair.second->render();
-      if (isAround(pair.second) && pair.second->isInteractable()) {
-         drawUI(mGameState.UIs["eKey"], pair.second->getPosition(), 2.2f, 230);
-      }
+        if (!pair.second->isActive()) continue;
+        pair.second->render();
+        if (isAround(pair.second) && pair.second->isInteractable()) {
+            drawUI(mGameState.UIs["eKey"], pair.second->getPosition(), 2.2f, 230);
+        }
    }
 
    Entity* mom = mGameState.collidableEntities["mom"];
    Entity* dad = mGameState.collidableEntities["dad"];
+   Entity* inspector = mGameState.collidableEntities["inspector"];
    Entity* xochitl = mGameState.xochitl;
    
-   std::vector<Entity*> sortedEntities = {mom, dad, xochitl};
+   std::vector<Entity*> sortedEntities = {mom, dad, xochitl, inspector};
    std::sort(sortedEntities.begin(), sortedEntities.end(), [](Entity* a, Entity* b) {
       return a->getPosition().y < b->getPosition().y;
    });
    
    for (Entity* entity : sortedEntities) {
+    if (!entity->isActive()) continue;
       entity->render();
       if ((entity->getName() == "mom" || entity->getName() == "dad") && isAround(entity) && entity->isInteractable())
          drawUI(mGameState.UIs["eKey"], entity->getPosition(), 2.2f, 230);
    }
    
+   mGameState.shader.end();
    
 }
 
@@ -591,6 +781,23 @@ void LevelB::renderUI()
   if (displayingBoard) displayBoard();
   if (displayingMom) displayImage(mGameState.UIs["mom"]);
   if (displayingDad) displayImage(mGameState.UIs["dad"]);
+  if (displayingBlue) displayImage(mGameState.UIs["blueshirt"]);
+  if (displayingBlood) displayBlood();
+  
+  // Render run indicator
+  if (canRun && !hasRun) {
+      const char* text = "PRESS SPACE TO RUN";
+      int fontSize = 40;
+      int textWidth = MeasureText(text, fontSize);
+      int x = GetScreenWidth() / 2 - textWidth / 2;
+      int y = GetScreenHeight() / 2 + 200;
+      DrawRectangle(x - 20, y - 10, textWidth + 40, fontSize + 20, ColorAlpha(BLACK, 0.7f));
+      DrawText(text, x, y, fontSize, WHITE);
+      
+      std::string progressText = std::to_string(spacePressCount) + "/30";
+      int progressWidth = MeasureText(progressText.c_str(), 30);
+      DrawText(progressText.c_str(), GetScreenWidth() / 2 - progressWidth / 2, y + fontSize + 10, 30, YELLOW);
+  }
 
   // display dialoge
   if (mGameState.activeDialogue) {
@@ -633,23 +840,9 @@ void LevelB::displayTV() {
    Rectangle dest = {0, 0, (float)GetScreenWidth(), (float)GetScreenHeight()};
    DrawTexturePro(mGameState.UIs["TVEffect"], source, dest, {0.0f, 0.0f}, 0.0f, WHITE);
 
-   // Get only the revealed portion of the text
-   std::string revealedText = TVstates.tvText.substr(0, TVstates.tvRevealedChars);
+    int instructionWidth = MeasureText("Press E to close", 20);
+    DrawText("Press E to close", GetScreenWidth() - instructionWidth - 20, GetScreenHeight() - 40, 20, ColorAlpha(WHITE, 0.8f));
    
-   // Text rendering settings
-   int fontSize = 26;
-   float padding = 150.0f;
-   float startX = padding;
-   float startY = 50.0f;
-   
-   // Draw text directly (DrawText supports \n)
-   DrawText(revealedText.c_str(), (int)startX, (int)startY, fontSize, ColorFromHex("#7d0a0a"));
-   
-   // Show instruction at bottom
-   if (TVstates.tvTextFullyRevealed) {
-      int instructionWidth = MeasureText("Press E to close", 20);
-      DrawText("Press E to close", GetScreenWidth() - instructionWidth - 20, GetScreenHeight() - 40, 20, ColorAlpha(WHITE, 0.8f));
-   }
 }
 
 void LevelB::displayBoard() {
@@ -661,12 +854,35 @@ void LevelB::displayBoard() {
    DrawText("Press E to close", GetScreenWidth() - instructionWidth - 20, GetScreenHeight() - 40, 20, ColorAlpha(WHITE, 0.8f));
 }
 
-void LevelB::displayImage(Texture2D texture) {
+void LevelB::displayImage(Texture2D texture, bool displayclosed) {
    Rectangle source = { 0, 0, (float)texture.width, (float)texture.height };
    Rectangle dest = {0, 0, (float)GetScreenWidth(), (float)GetScreenHeight()};
    DrawTexturePro(texture, source, dest, {0.0f, 0.0f}, 0.0f, WHITE);
-   int instructionWidth = MeasureText("Press E to close", 20);
-   DrawText("Press E to close", GetScreenWidth() - instructionWidth - 20, GetScreenHeight() - 40, 20, ColorAlpha(WHITE, 0.8f));
+   if (!displayclosed) {
+      int instructionWidth = MeasureText("Press E to close", 20);
+      DrawText("Press E to close", GetScreenWidth() - instructionWidth - 20, GetScreenHeight() - 40, 20, ColorAlpha(WHITE, 0.8f));   
+   }
+}
+
+void LevelB::displayBlood() {
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), ColorFromHex("#330603"));
+    
+    if (startTime > 3.0f) {
+        displayImage(mGameState.UIs["blood1"], true);
+        if (!IsSoundPlaying(mGameState.sounds["stab"])) PlaySound(mGameState.sounds["stab"]);
+        playHeartbeat = true;
+    }
+    if (startTime > 6.0f) {
+        displayImage(mGameState.UIs["blood2"], true);
+    }
+    if (startTime > 9.0f) {
+        // protagonist died
+        if (mGameState.dialogues["blood"]->isDialogueComplete()) {
+            mGameState.nextSceneID = 5;
+        }
+        // parents died
+        else mGameState.activeDialogue = mGameState.dialogues["blood"];
+    }
 }
 
 void LevelB::shutdown()

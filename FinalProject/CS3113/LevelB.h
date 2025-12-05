@@ -4,15 +4,27 @@
 #include "Scene.h"
 #include "Dialoge.h"
 #include "LevelA.h"
-
+#include "ShaderProgram.h"
 
 
 class LevelB : public Scene {
 private:
     TVstates TVstates;
-    bool displayingBoard;
-    bool displayingMom;
-    bool displayingDad;
+    bool displayingBoard = false;
+    bool displayingMom = false;
+    bool displayingDad = false;
+    bool displayingBlue = false;
+    bool displayingBlood = false;
+    bool knock = false;
+    bool playHeartbeat = false;
+    bool canRun = false;
+    bool hasRun = false;
+    int spacePressCount = 0;
+    ShaderProgram shader;
+    float startTime = 0.0f;
+    float deltatime;
+    bool waitingForInspector = false;
+    float inspectorWaitTimer = 0.0f;
     
     unsigned int mLevelData1[LEVEL_WIDTH * LEVEL_HEIGHT] = {
         0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  ,
@@ -68,7 +80,8 @@ private:
 
     void displayTV();
     void displayBoard();
-    void displayImage(Texture2D texture);
+    void displayImage(Texture2D texture, bool displayclosed = false);
+    void displayBlood();
 
 public:
     static constexpr float TILE_DIMENSION       = 55.0f,

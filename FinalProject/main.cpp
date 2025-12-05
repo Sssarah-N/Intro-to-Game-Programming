@@ -8,10 +8,24 @@
 * Academic Misconduct.
 **/
 
-#include "CS3113/LevelB.h"
-// #include "CS3113/startScreen.h"
-// #include "CS3113/wonScene.h"
-// #include "CS3113/loseScene.h"
+/*
+    Levels:
+    0. Day 1
+    1. Day 2
+    2. Day 3
+    3. Start screen
+    4. Opening ending1: escaped from home, what now?
+    5. bad ending1: killed by mimic
+    6. opening ending2: chose to trust parents, fake happy ending
+    7. end screen
+*/
+
+#include "CS3113/LevelC.h"
+#include "CS3113/startScreen.h"
+#include "CS3113/OE1.h"
+#include "CS3113/BE1.h"
+#include "CS3113/OE2.h"
+#include "CS3113/EndScene.h"
 #include "CS3113/Effects.h"
 
 // Global Constants
@@ -35,10 +49,12 @@ Effects* gEffect = nullptr;
 
 LevelA *gLevelA = nullptr;
 LevelB *gLevelB = nullptr;
-// // LevelC *gLevelC = nullptr;
-// StartScreen *gStartScreen = nullptr;
-// LoseScene *gLostScene = nullptr;
-// WonScene *gWonScene = nullptr;
+LevelC *gLevelC = nullptr;
+StartScreen *gStartScreen = nullptr;
+OE1 *gOE1 = nullptr;
+BE1 *gBE1 = nullptr;
+OE2 *gOE2 = nullptr;
+EndScene* gEndScene = nullptr;
 
 Music bgm;
 Sound levelCompletedSound = LoadSound("assets/levelCompleted.wav");
@@ -64,19 +80,23 @@ void initialiseScene() {
     
     gLevelA = new LevelA(ORIGIN, "#C0897E", LoadMusicStream("assets/SCP-x7x.mp3"));
     gLevelB = new LevelB(ORIGIN, "#C0897E", LoadMusicStream("assets/SCP-x7x.mp3"));
-    // gLevelC = new LevelC(ORIGIN, "#C0897E");
-    // gStartScreen = new StartScreen(ORIGIN, "#000000");
-    // gLostScene = new LoseScene(ORIGIN, "#000000");
-    // gWonScene = new WonScene(ORIGIN, "#000000");
+    gLevelC = new LevelC(ORIGIN, "#C0897E", LoadMusicStream("assets/SCP-x1x.mp3"));
+    gStartScreen = new StartScreen(ORIGIN, "#000000", LoadMusicStream("assets/SCP-x7x.mp3"));
+    gOE1 = new OE1(ORIGIN, "#000000", LoadMusicStream("assets/SCP-x7x.mp3"));
+    gBE1 = new BE1(ORIGIN, "#000000", LoadMusicStream("assets/SCP-x7x.mp3"));
+    gOE2 = new OE2(ORIGIN, "#000000", LoadMusicStream("assets/SCP-x7x.mp3"));
+    gEndScene = new EndScene(ORIGIN, "#000000", LoadMusicStream("assets/SCP-x7x.mp3"));
 
     gLevels.push_back(gLevelA);
     gLevels.push_back(gLevelB);
-    // gLevels.push_back(gLevelC);
-    // gLevels.push_back(gStartScreen);
-    // gLevels.push_back(gLostScene);
-    // gLevels.push_back(gWonScene);
+    gLevels.push_back(gLevelC);
+    gLevels.push_back(gStartScreen);
+    gLevels.push_back(gOE1);
+    gLevels.push_back(gBE1);
+    gLevels.push_back(gOE2);
+    gLevels.push_back(gEndScene);
 
-    switchToScene(gLevels[0], false);
+    switchToScene(gLevels[3], false);
 }
 
 void initialise()
@@ -84,12 +104,7 @@ void initialise()
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Scenes");
     InitAudioDevice();
     initialiseScene();
-    
-    // bgm = LoadMusicStream("assets/Adventures in Adventureland.mp3");
-    // SetMusicVolume(bgm, 0.33f);
-    // PlayMusicStream(bgm);
     SetTargetFPS(FPS);
-
     gEffect = new Effects(ORIGIN, (float) GetScreenWidth() * 1.5f, (float) GetScreenHeight() * 1.5f);
 }
 
@@ -99,28 +114,12 @@ void processInput()
     if (gCurrentScene->getState().xochitl != nullptr)
     {
         gCurrentScene->getState().xochitl->resetMovement();
-
         if      (IsKeyDown(KEY_A)) gCurrentScene->getState().xochitl->moveLeft();
         else if (IsKeyDown(KEY_D)) gCurrentScene->getState().xochitl->moveRight();
         if      (IsKeyDown(KEY_W)) gCurrentScene->getState().xochitl->moveUp();
         else if (IsKeyDown(KEY_S)) gCurrentScene->getState().xochitl->moveDown();
-        // if (IsKeyPressed(KEY_W) && 
-        //     gCurrentScene->getState().xochitl->isCollidingBottom())
-        // {
-        //     gCurrentScene->getState().xochitl->jump();
-        //     PlaySound(gCurrentScene->getState().jumpSound);
-        // }
 
-        if (GetLength(gCurrentScene->getState().xochitl->getMovement()) > 1.0f) 
-            gCurrentScene->getState().xochitl->normaliseMovement();
-
-        // if (IsKeyPressed(KEY_SPACE)) {
-        //     gCurrentScene->getState().xochitl->setEntityState(ATTACK);
-        //     PlaySound(gCurrentScene->getState().attackSound);
-        // }
     }
-
-    if (IsKeyDown(KEY_ENTER)) gCurrentScene->input(KEY_ENTER);
 
     if (IsKeyPressed(KEY_Q) || WindowShouldClose()) gAppStatus = TERMINATED;
 }

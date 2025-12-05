@@ -55,7 +55,6 @@ void Scene::shutdown() {
             UnloadSound(pair.second);
         }
     }
-
     // Stop and unload background music if valid
     if (IsMusicValid(mGameState.bgm)) {
         StopMusicStream(mGameState.bgm);
