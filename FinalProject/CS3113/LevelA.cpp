@@ -445,7 +445,7 @@ void LevelA::update(float deltaTime)
          mGameState.collidableEntities["TV"]->setInteractable(false);
          mGameState.collidableEntities["board"]->setInteractable(true);
          mGameState.collidableEntities["door"]->setInteractable(true);
-         mGameState.activeDialogue = mGameState.dialogues["character"];
+         mGameState.activeDialogue = mGameState.dialogues["afterNews"];
       }
    }
 
@@ -464,6 +464,7 @@ void LevelA::update(float deltaTime)
          && IsKeyPressed(KEY_E) && !mGameState.dialogues["mom_morning1"]->isDialogueComplete()) {
       mGameState.activeDialogue = mGameState.dialogues["mom_morning1"];
       mGameState.collidableEntities["mom"]->setAIState(IDLE);
+      mGameState.collidableEntities["mom"]->setInteractable(false);
    }
    
 
@@ -479,6 +480,7 @@ void LevelA::update(float deltaTime)
          && IsKeyPressed(KEY_E) && !mGameState.dialogues["dad_morning1"]->isDialogueComplete()) {
       mGameState.activeDialogue = mGameState.dialogues["dad_morning1"];
       mGameState.collidableEntities["dad"]->setAIState(IDLE);
+      mGameState.collidableEntities["dad"]->setInteractable(false);
    }
    
 
