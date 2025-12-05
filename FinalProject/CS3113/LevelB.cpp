@@ -345,8 +345,8 @@ void LevelB::initialise()
     mGameState.dialogues["dad_morning1"] = dialoge;
 
    lines = {
-      " it was the glass fishing float, right?",
-      "We even argued with another tourist over it."
+      "It was a beautiful stone right?",
+      "We found it on the beach."
    };
 
    dialoge = new Dialoge(lines, "Dad");

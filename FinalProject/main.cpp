@@ -1,7 +1,7 @@
 /**
 * Author: Sarah Niu
-* Assignment: Rise of the AI
-* Date due: 2025-11-08, 11:59pm
+* Assignment: Three days
+* Date due: 12/5, 2:00pm
 * I pledge that I have completed this assignment without
 * collaborating with anyone else, in conformance with the
 * NYU School of Engineering Policies and Procedures on
